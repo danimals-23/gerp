@@ -1,0 +1,199 @@
+/**********************************************************
+* Project 3: Gerp
+* CS 15
+* README
+* Thomas Lai & Daniel Peng
+* 4/12/22
+**********************************************************/
+
+(B) Purpose of gerp:
+
+    This program is an implementation of the unix command -grep, which
+    allows the user to search for a given word within every file in
+    in a directory.
+
+    For example, a user could call the command in their terminal with
+    ./gerp [inputDirectory] [outputFile]. Then, the user would query for
+    words within every file in the input directory. Finally, the results of
+    that query would be printed to the output file which was requested.
+
+    All queries for this implementation of gerp is through std::cin. However,
+    passing text files with commands as std::cin will also run the program
+    correctly.
+
+
+(C) Acknowledgements of help:
+    
+    We received help from TA's on piazza, as well as the TA's who helped us
+    during phase 0 and 1 of the project (design check).
+
+    References: https://www.cplusplus.com/reference/vector/vector/
+
+
+(D) Files provided and purpose
+
+    main.cpp
+        This contains the main function which runs the simulation. This runs
+        when the executable is called, and makes sure that the user inputs
+        the correct amount of input. It will inform the user of the correct
+        usage if the input is incorrect.
+    
+    gerp.h
+        This is the interface of our gerp class. It contains all the
+        functions and public/private member variables of the class.
+
+    gerp.cpp
+        This is the implementation of our gerp class. All functions are
+        defined and implemented in this file.
+
+    stringTable.h
+        This is the interface of our stringTable class, which represents a
+        hash table that hashes keys (words).
+
+    stringTable.cpp
+        This is the implementation of our stringTable class. All the functions
+        are defined within this file.
+
+    unit_tests.h
+        This is our unit_tests file, which contains all of our unit-testing
+        that was done on our functions.
+
+    stringProcessing.h
+        This the interface of our stringProcessing class, which parses a
+        string and removes all non-alphanumerical characters.
+
+    stringProcessing.cpp
+        This is the implementation of the stringProcessing class, where the
+        function that parses a string is implemented.
+
+
+(E) Compile/Run
+
+    In order to compile and run this program, the user can type 'make' into
+    the terminal, which will automatically run our MakeFile's first script.
+    This script will compile all files and create the ./gerp executable.
+
+    Alternatively, the user can also type 'make gerp' into the terminal.
+
+    After compiling and creating the executable with the steps listed above,
+    the user can run the program by calling the executable as shown below:
+
+        ./gerp [inputDirectory] [outputFile] < [commandFile]***
+
+    *** Note: inputting a command file is not necessary for the program to run.
+        If the user would like to manually query for words, then there is
+        no need to pass in a command file.
+
+
+(F) Architectural overview
+
+    For the phase 0/1 architecture, the treeTraversal function which we
+    created utilizes the FSTree and DirNode classes, which help us
+    recurse through a root directory and then print out the files within
+    that directory.
+
+    For the second phase of Gerp, in order for our program to be memory
+    efficient, we used many different structs withint our stringTable class,
+    which is explained in greater detail below (see part G).
+
+    Finally, our Gerp class utilizes the stringTable class as our main hash
+    table, and it also uses the stringProcessing class in order to parse
+    strings. Additionally, our Gerp class also has a private array which
+    stores every single file path. We chose to implement this array in order
+    to be more memory efficient, as it removes redundancy (in the case where
+    filePaths are stored in every entry, there would be a lot of repeated
+    filePaths being stored).
+
+
+(G) Outline of our implementation's data structures
+
+    The main data structure we chose to use for our implementation of gerp
+    was the hash map. Our hash map was implemented using an array, which
+    holds Containers, a specific struct defined in our stringTable class.
+
+    Containers are essentially buckets, which different words can be hashed
+    into. In order to distinguish between different keys which are hashed
+    into the same Container, we also have a vector of ContainerNodes within
+    every container.
+
+    Every ContainerNode has a key, which is the lower-case hashed key which
+    was hashed into the bucket. Then, in order to handle duplicate keys, we
+    utilize chaining. In every ContainerNode, there is a vector of Entrys,
+    another specific struct defined in our stringTable class.
+
+    Each Entry contains a string, which is the case-sensitive version of the
+    original key (because we are hashing the lower-cased words). Furthermore,
+    every Entry also has a value, which is of type Location, another unique
+    struct.
+
+    Location contains the most basic information each entry has. It contains
+    the index of the filePath, which holds the string that we are looking for.
+    Location also contains the line number of the word that was hashed.
+
+    Overall, we prioritized memory efficiency over time-efficiency. We
+    originally were thinking of hashing the entire file line, but realized
+    that, although it would make querying much faster, it would take up way
+    too much space. Thus, we chose to store a filePath index and a line number,
+    so that every time a user queries, we would simply open the file (and
+    keep it open until an Entry contains a different file index), and then
+    build up the line to be printed to the output file.
+
+
+(H) Testing
+
+    PHASE 0 / 1:
+
+    For phase 0/1 of gerp, we utilized unit testing in order to make sure that
+    our basic functions were working correctly. We first tested to make sure
+    that the stripNonAlphaNum function was parsing strings correctely, and we
+    made sure to test many edge cases, as shown below:
+        
+        Edge cases (Phase 1):
+            
+            * Parsing string with no alpha numerical character
+            * Parsing empty string
+            * Parsing a string with one character
+
+    Next, to test the treeTraversal function, we created our own directories
+    and files, and created a temporary main() function in our treeTraversal
+    cpp file. Then, we also tested the treeTraversal function on the
+    proj3-test-dirs directory.
+    
+
+
+    PHASE 2:
+
+    For phase 2 of gerp, we mainly tested with diff-test and comparing our
+    output with the reference implementation's output. We also created a
+    testCommands.txt file, which contains commands that can be passed to the
+    program. We then diff-tested using the command file and compared our
+    implementation with the reference.
+
+    Finally, we rigorously tested edge cases by creating our own directory,
+    and creating files within the directory.
+
+        / proj3 / testDirectory /
+                        a.txt
+                        b.txt
+                        c.txt
+                        directory1 /
+                            d.txt
+                        directory2 /
+    
+    Above is the structure of our testing directory, where we had multiple
+    files as well as an empty directory. We made sure to test all the possible
+    edge cases, which are listed below:
+
+        Edge cases:
+
+            * Querying the first word of a file
+            * Querying the last word of a file
+            * Querying a word that doesn't exist (case sensitive)
+            * Querying a word that doesn't exist (case insensitive)
+            * Creating the hashmap with an empty directory
+            * Creating the hashmap with a directory that does not exist
+
+    Overall, our main method of testing for phase 2 was using diff-test to
+    make sure our implementation had no output differences with the reference.
+    Additionally, we also tested to make sure our cerr was the same as the
+    reference by redirecting the cerr to a file (in bash) : 2> ref.err.
